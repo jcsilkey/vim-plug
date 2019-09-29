@@ -212,7 +212,7 @@ function! plug#end()
     augroup END
     augroup! PlugLOD
   endif
-  let lod = { 'ft': {}, 'map': {}, 'cmd': {} }
+  let lod = { 'ft': {}, 'map': {}, 'cmd': {}, 'do': [] }
 
   if exists('g:did_load_filetypes')
     filetype off
@@ -221,7 +221,14 @@ function! plug#end()
     if !has_key(g:plugs, name)
       continue
     endif
+
+
     let plug = g:plugs[name]
+
+    if !has_key(plug, 'on') && !has_key(plug, 'for')
+        call add(lod.do, name)
+    endif
+
     if get(s:loaded, name, 0) || !s:lazy(plug, 'on') && !s:lazy(plug, 'for')
       let s:loaded[name] = 1
       continue
@@ -292,6 +299,14 @@ function! plug#end()
   else
     call s:reload_plugins()
   endif
+
+  for name in lod.do
+    if !has_key(g:plugs, name)
+      continue
+    endif
+
+    call s:doautocmd('User', name)
+  endfor
 endfunction
 
 function! s:loaded_names()
